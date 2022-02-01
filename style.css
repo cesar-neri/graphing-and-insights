@@ -1,0 +1,38 @@
+body{
+  background-image: url('assets/space.gif');
+  cursor: url('assets/butterflysprite.png') 0 0, auto;
+}
+
+h1 {
+  font-family: 'Comforter', cursive;
+  font-size: 10vw;
+  transform: rotate(2deg);
+  text-align: center;
+  background: -webkit-linear-gradient(orange, purple);
+ -webkit-background-clip: text;
+ -webkit-text-fill-color: transparent;
+
+}
+
+h2 { color: blue; }
+
+.sparkle-canvas {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 99;
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.rotating {
+  animation: rotating .5s linear infinite;
+}

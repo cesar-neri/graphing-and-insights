@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Graphing & Insights Homepage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comforter&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <!-- Link to Figma https://www.figma.com/file/HM9feSs6UNFfTJtD7Lm9gt/CoScreen-Test-Run?node-id=2%3A2 -->
+
+    <h1>welcome to the graphing & insights home page! ✨</h1>
+    <img src='assets/Mariah.png'>
+    <img class="rotating" src='assets/bernie.webp'>
+
+
+  <canvas class="sparkle-canvas"></canvas>
+
+  <script>
+    const CANVAS = document.querySelector(".sparkle-canvas");
+    const CTX = CANVAS.getContext("2d");
+    const SPARKLE_COUNT_DIVISOR = 4000;
+    const SCALE_MIN = 0.4;
+    const SCALE_MAX = 1;
+    const MAX_DURATION_IN_SECONDS = 3;
+    const FRAMES_PER_SECOND = 60;
+    const MAX_DURATION_IN_FRAMES = MAX_DURATION_IN_SECONDS * FRAMES_PER_SECOND;
+
+    let currentFrame = 0;
+    let sparkles;
+    let worldTick;
+
+    const animate = () => {
+      CANVAS.width = window.innerWidth;
+      CANVAS.height = window.innerHeight;
+      sparkles = generateSparklesToFillCanvas();
+      resetAnimation();
+
+      worldTick = window.requestAnimationFrame(drawFrame);
+    };
+
+    const resetAnimation = () => {
+      window.cancelAnimationFrame(worldTick);
+      currentFrame = 0;
+    };
+
+    const randomBetween = (min, max) => Math.random() * (max - min) + min;
+
+    const randomChoose = (choice1, choice2) =>
+      Math.round(Math.random()) ? choice1 : choice2;
+
+    const transition = (start, end, progress) =>
+      start + (end - start) * progress;
+
+    const clip = number => Math.max(0, Math.min(number, 1));
+
+    const setMatrix = (x, y, scale, rotate) => {
+      const xAx = Math.cos(rotate) * scale;
+      const xAy = Math.sin(rotate) * scale;
+      CTX.setTransform(xAx, xAy, -xAy, xAx, x, y);
+    };
+
+    const generateRandomSparkleProps = () => {
+      const verticalStartOffset = 50;
+      const scaleStart = randomBetween(SCALE_MIN, SCALE_MAX);
+      const x = randomBetween(0, CANVAS.width);
+      const yStart = randomBetween(0, CANVAS.height) - verticalStartOffset;
+      const yEndMultiplier = 60;
+      const yEnd = yStart + scaleStart * yEndMultiplier;
+      const size = 16;
+      const animationDurationInFrames = randomBetween(
+        MAX_DURATION_IN_FRAMES * 0.6,
+        MAX_DURATION_IN_FRAMES
+      );
+
+      return {
+        positionStart: [x, yStart],
+        positionEnd: [x, yEnd],
+        size: size,
+        scaleStart: scaleStart,
+        scaleEnd: 0,
+        rotateStart: randomBetween(0, size * 0.2),
+        rotateEnd: randomBetween(size * 0.4, size * 0.8),
+        rotateDirection: randomChoose(-1, 1),
+        hue: randomBetween(0, 360),
+        animationDurationInFrames: animationDurationInFrames
+      };
+    };
+
+    const generateSparklesToFillCanvas = () => {
+      const containerArea = CANVAS.width * CANVAS.height;
+      const sparkleCount = Math.round(containerArea / SPARKLE_COUNT_DIVISOR);
+      const emptySparkleArray = new Array(sparkleCount).fill(0);
+
+      return emptySparkleArray.map(() => generateRandomSparkleProps());
+    };
+
+    const drawFrame = () => {
+      CTX.clearRect(0, 0, CANVAS.width, CANVAS.height);
+
+      sparkles.forEach(
+        ({
+          positionStart,
+          positionEnd,
+          size,
+          scaleStart,
+          scaleEnd,
+          rotateStart,
+          rotateEnd,
+          rotateDirection,
+          hue,
+          animationDurationInFrames
+        }) => {
+          CTX.save();
+
+          const progress = clip(currentFrame / animationDurationInFrames);
+          const opacityProgress = clip(
+            currentFrame / (MAX_DURATION_IN_FRAMES * 0.05)
+          );
+
+          const opacity = transition(0, 1, opacityProgress);
+          CTX.fillStyle = `hsla(${hue}, 100%, 50%, ${opacity})`;
+
+          setMatrix(
+            positionStart[0],
+            transition(positionStart[1], positionEnd[1], progress),
+            transition(scaleStart, scaleEnd, progress),
+            transition(
+              rotateDirection * rotateStart,
+              rotateDirection * rotateEnd,
+              progress
+            )
+          );
+
+          const strokeWidth = 1.5;
+          const centerOffset = size / 2 - strokeWidth / 2;
+
+          CTX.fillRect(-centerOffset, 0, size, strokeWidth);
+          CTX.fillRect(0, -centerOffset, strokeWidth, size);
+
+          CTX.restore();
+        }
+      );
+
+      if (currentFrame >= MAX_DURATION_IN_FRAMES) {
+        resetAnimation();
+      } else {
+        currentFrame += 1;
+        worldTick = window.requestAnimationFrame(drawFrame);
+      }
+    };
+
+    document.addEventListener("click", animate);
+  </script>
+
+  
+  </body>
+
+
+</html>
